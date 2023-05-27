@@ -52,6 +52,7 @@
     <delete dir="${docs}" />
     <mkdir dir="${docs}" />
     <javadoc destdir="${docs}">
+      <classpath refid="classes" />
       <fileset dir="${src}" defaultexcludes="yes">
         <include name="**"/>
       </fileset>
