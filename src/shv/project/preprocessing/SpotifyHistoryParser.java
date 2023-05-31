@@ -23,6 +23,8 @@ public class SpotifyHistoryParser extends Thread {
 	private static TreeSet<Song> songlist;
 	private static TreeSet<Artist> artistlist;
 	private static TreeSet<Album> albumlist;
+	private static TreeSet<Podcast> podcastlist;
+	private static TreeSet<Episode> episodelist;
 	private static TreeSet<ListeningEvent> eventlist;
 	private static Duration totalDuration;
 	private static Object durationMonitor;
@@ -30,6 +32,9 @@ public class SpotifyHistoryParser extends Thread {
 	private final static String artist_key = "master_metadata_album_artist_name";
 	private final static String album_key = "master_metadata_album_album_name";
 	private final static String uri_key = "spotify_track_uri";
+	private final static String episode_key = "episode_name";
+	private final static String podcast_key = "episode_show_name";
+	private final static String podcast_uri_key = "spotify_episode_uri";
 	private final static String ts_key = "ts";
 	private final static String ms_key = "ms_played";
 
@@ -46,7 +51,7 @@ public class SpotifyHistoryParser extends Thread {
 	 * @return All data bundled together
 	 */
 	public static SpotifyDataSetBundle getBundle(){
-		return new SpotifyDataSetBundle(songlist, artistlist, albumlist, eventlist, totalDuration);
+		return new SpotifyDataSetBundle(songlist, artistlist, albumlist, podcastlist, episodelist, eventlist, totalDuration);
 	}
 
 	/**
@@ -56,6 +61,8 @@ public class SpotifyHistoryParser extends Thread {
 		songlist = new TreeSet<Song>();
 		artistlist = new TreeSet<Artist>();
 		albumlist = new TreeSet<Album>();
+		podcastlist = new TreeSet<Podcast>();
+		episodelist = new TreeSet<Episode>();
 		eventlist = new TreeSet<ListeningEvent>();
 		durationMonitor = new Object();
 		totalDuration = Duration.ZERO;
@@ -115,7 +122,7 @@ public class SpotifyHistoryParser extends Thread {
 		Iterator i = historyJson.iterator();
 		Duration d = Duration.ZERO;
 		while(i.hasNext()){
-			d = d.plus(processSong((JSONObject) i.next()));
+			d = d.plus(processObject((JSONObject) i.next()));
 		}
 		synchronized(durationMonitor){
 			totalDuration = totalDuration.plus(d);
@@ -127,34 +134,55 @@ public class SpotifyHistoryParser extends Thread {
 	 * @param  o JSON-Object containing a song
 	 * @return   Duration of the song
 	 */
-	private Duration processSong(JSONObject o){
-		if(o.get(name_key) == JSONObject.NULL)
-			return Duration.ZERO;
+	private Duration processObject(JSONObject o){
+		if(o.get(name_key) == JSONObject.NULL){
+			if(o.get(podcast_key) == JSONObject.NULL)
+				return Duration.ZERO;
 
-		//artist
-		Artist artist = new Artist(o.getString(artist_key));
-		artist = (Artist)addAndGet(artist, artistlist);
+			//podcast
+			Podcast podcast = new Podcast(o.getString(podcast_key));
+			podcast = (Podcast)addAndGet(podcast, podcastlist);
 
-		//album
-		Album album = new Album(o.getString(album_key), artist);
-		album = (Album)addAndGet(album, albumlist);
+			//episode
+			Episode episode = new Episode(o.getString(episode_key), podcast, o.getString(podcast_uri_key));
+			if(!addToSet(episode, episodelist)){
+				episode = (Episode)getFromSet(episode, episodelist);
+			} else {
+				podcast.addEpisode(episode);
+			}
 
-		//song
-		Song song = new Song(o.getString(name_key), artist, album, o.getString(uri_key));
-		if(!addToSet(song, songlist)){
-			song = (Song)getFromSet(song, songlist);
+			//event
+			ListeningEvent le = new ListeningEvent(episode, o.getString(ts_key), o.getLong(ms_key));
+			episode.addEvent(le);
+			podcast.addEvent(le);
+
+			return le.getDuration();
 		} else {
-			artist.addSong(song);
-			album.addSong(song);
+			//artist
+			Artist artist = new Artist(o.getString(artist_key));
+			artist = (Artist)addAndGet(artist, artistlist);
+
+			//album
+			Album album = new Album(o.getString(album_key), artist);
+			album = (Album)addAndGet(album, albumlist);
+
+			//song
+			Song song = new Song(o.getString(name_key), artist, album, o.getString(uri_key));
+			if(!addToSet(song, songlist)){
+				song = (Song)getFromSet(song, songlist);
+			} else {
+				artist.addSong(song);
+				album.addSong(song);
+			}
+
+			//event
+			ListeningEvent le = new ListeningEvent(song, o.getString(ts_key), o.getLong(ms_key));
+			song.addEvent(le);
+			artist.addEvent(le);
+			album.addEvent(le);
+
+			return le.getDuration();
 		}
-
-		//event
-		ListeningEvent le = new ListeningEvent(song, o.getString(ts_key), o.getLong(ms_key));
-		song.addEvent(le);
-		artist.addEvent(le);
-		album.addEvent(le);
-
-		return le.getDuration();
 	}
 
 	/**

@@ -3,7 +3,7 @@ package shv.project.data;
 /**
  * A class that stores data about a Song.
  */
-public class Song extends SpotifyData {
+public class Song extends SpotifyData implements Listenable {
 	private final String name, trackURI;
 	private final Artist artist;
 	private final Album album;
@@ -49,5 +49,13 @@ public class Song extends SpotifyData {
 	 */
 	public int compareTo(Song s){
 		return trackURI.compareTo(s.trackURI);
+	}
+
+	/**
+	 * Gets the URI of the song.
+	 * @return URI String
+	 */
+	public String getURI(){
+		return trackURI;
 	}
 }

@@ -7,18 +7,18 @@ import java.time.Instant;
  * A class for storing a single listening event of a song played on spotify.
  */
 public class ListeningEvent implements Comparable<ListeningEvent>{
-	private final Song song;
+	private final Listenable listenedTo;
 	private final Instant timestamp;
 	private final Duration duration;
 
 	/**
 	 * A Constructor for a listening event.
-	 * @param  s  the song that was played
+	 * @param  l  what was listened to
 	 * @param  ts the timestamp of when it was played
 	 * @param  ms the time in milliseconds for how long it was played
 	 */
-	public ListeningEvent(Song s, String ts, long ms){
-		song = s;
+	public ListeningEvent(Listenable l, String ts, long ms){
+		listenedTo = l;
 		timestamp = Instant.parse(ts);
 		duration = Duration.ofMillis(ms);
 	}
@@ -35,7 +35,7 @@ public class ListeningEvent implements Comparable<ListeningEvent>{
 		int durationCompared = duration.compareTo(other.duration);
 		if(durationCompared != 0)
 			return durationCompared;
-		return song.compareTo(other.song);
+		return listenedTo.getURI().compareTo(other.listenedTo.getURI());
 	}
 
 	/**

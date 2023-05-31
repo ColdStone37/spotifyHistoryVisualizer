@@ -56,6 +56,22 @@ public class SpotifyHistoryProcessor {
 	}
 
 	/**
+	 * Gets list of podcasts sorted by listening time.
+	 * @return sorted list of podcasts
+	 */
+	public List<Podcast> getPodcastRanking(){
+		return getRanking(parsedData.getPodcastlist());
+	}
+
+	/**
+	 * Gets list of episodes sorted by listening time.
+	 * @return sorted list of episodes
+	 */
+	public List<Episode> getEpisodeRanking(){
+		return getRanking(parsedData.getEpisodelist());
+	}
+
+	/**
 	 * Sorts a TreeSet with SpotifyData into a list ordered by listening time.
 	 * @param  data Set with SpotifyData Objects
 	 * @return      sorted list of SpotifyData objects
@@ -93,5 +109,9 @@ public class SpotifyHistoryProcessor {
 		printRanking(processor.getArtistRanking(), "Artists", printCount);
 		System.out.println();
 		printRanking(processor.getAlbumRanking(), "Albums", printCount);
+		System.out.println();
+		printRanking(processor.getPodcastRanking(), "Podcasts", printCount);
+		System.out.println();
+		printRanking(processor.getEpisodeRanking(), "Episodes", printCount);
 	}
 }

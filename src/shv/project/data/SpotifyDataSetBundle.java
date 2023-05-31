@@ -11,6 +11,8 @@ public class SpotifyDataSetBundle {
 	private TreeSet<Song> songlist;
 	private TreeSet<Artist> artistlist;
 	private TreeSet<Album> albumlist;
+	private TreeSet<Podcast> podcastlist;
+	private TreeSet<Episode> episodelist;
 	private TreeSet<ListeningEvent> eventlist;
 	private Duration totalDuration;
 
@@ -19,13 +21,17 @@ public class SpotifyDataSetBundle {
 	 * @param  songlist      set of all songs
 	 * @param  artistlist    set of all artists
 	 * @param  albumlist     set of all albums
+	 * @param  podcastlist   set of all podcasts
+	 * @param  episodelist   set of all episodes
 	 * @param  eventlist     set of all events
 	 * @param  totalDuration total listening duration
 	 */
-	public SpotifyDataSetBundle(TreeSet<Song> songlist, TreeSet<Artist> artistlist, TreeSet<Album> albumlist, TreeSet<ListeningEvent> eventlist, Duration totalDuration){
+	public SpotifyDataSetBundle(TreeSet<Song> songlist, TreeSet<Artist> artistlist, TreeSet<Album> albumlist, TreeSet<Podcast> podcastlist, TreeSet<Episode> episodelist, TreeSet<ListeningEvent> eventlist, Duration totalDuration){
 		this.songlist = songlist;
 		this.artistlist = artistlist;
 		this.albumlist = albumlist;
+		this.podcastlist = podcastlist;
+		this.episodelist = episodelist;
 		this.eventlist = eventlist;
 		this.totalDuration = totalDuration;
 	}
@@ -52,6 +58,22 @@ public class SpotifyDataSetBundle {
 	 */
 	public TreeSet<Album> getAlbumlist(){
 		return albumlist;
+	}
+
+	/**
+	 * Gets the set of all podcasts.
+	 * @return set of podcasts
+	 */
+	public TreeSet<Podcast> getPodcastlist(){
+		return podcastlist;
+	}
+
+	/**
+	 * Gets the set of all episodes.
+	 * @return set of episodes
+	 */
+	public TreeSet<Episode> getEpisodelist(){
+		return episodelist;
 	}
 
 	/**
