@@ -1,4 +1,4 @@
-package shv.project.parser;
+package shv.project.preprocessing;
 
 import org.json.*;
 import java.nio.file.*;
@@ -19,7 +19,7 @@ public class SpotifyHistoryParser extends Thread {
 	private boolean dataLoaded = false;
 
 	//Shared data
-	private static int threadCount = 0;
+	private static boolean isParsed = false;
 	private static TreeSet<Song> songlist;
 	private static TreeSet<Artist> artistlist;
 	private static TreeSet<Album> albumlist;
@@ -39,9 +39,14 @@ public class SpotifyHistoryParser extends Thread {
 	 */
 	public SpotifyHistoryParser(String filename){
 		this.filename = filename;
-		if(threadCount == 0)
-			reset();
-		threadCount++;
+	}
+
+	/**
+	 * Returns all data that was parsed in one object.
+	 * @return All data bundled together
+	 */
+	public static SpotifyDataSetBundle getBundle(){
+		return new SpotifyDataSetBundle(songlist, artistlist, albumlist, eventlist, totalDuration);
 	}
 
 	/**
@@ -54,6 +59,7 @@ public class SpotifyHistoryParser extends Thread {
 		eventlist = new TreeSet<ListeningEvent>();
 		durationMonitor = new Object();
 		totalDuration = Duration.ZERO;
+		isParsed = false;
 	}
 
 	/**
@@ -76,11 +82,19 @@ public class SpotifyHistoryParser extends Thread {
 	}
 
 	/**
-	 * Whether the thread finished
+	 * Whether the thread finished.
 	 * @return true if the thread terminated successfully
 	 */
 	public boolean finished(){
 		return dataLoaded;
+	}
+
+	/**
+	 * Whether all files have been parsed. 
+	 * @return True if the parser has finished successfully
+	 */
+	public static boolean isParsed(){
+		return isParsed;
 	}
 
 	/**
@@ -184,7 +198,8 @@ public class SpotifyHistoryParser extends Thread {
 	 * @param  filenames The names of the files to load
 	 * @return           true if all files were loaded successfully
 	 */
-	public static boolean loadFiles(String[] filenames){
+	public static boolean parse(String[] filenames){
+		reset();
 		SpotifyHistoryParser[] parserList = new SpotifyHistoryParser[filenames.length];
 		for(int i = 0; i < parserList.length; i++){
 			parserList[i] = new SpotifyHistoryParser(filenames[i]);
@@ -199,6 +214,7 @@ public class SpotifyHistoryParser extends Thread {
 				return false;
 			}
 		}
+		isParsed = true;
 		return true;
 	}
 
@@ -207,7 +223,7 @@ public class SpotifyHistoryParser extends Thread {
 	 * @param args filenames
 	 */
 	public static void main(String[] args){
-		loadFiles(args);
+		parse(args);
 
 		System.out.println("Time: " + totalDuration.toDays() + " days");
 		System.out.println("Songs: " + songlist.size() + " - Artists: " + artistlist.size() + " - Albums: " + albumlist.size());
